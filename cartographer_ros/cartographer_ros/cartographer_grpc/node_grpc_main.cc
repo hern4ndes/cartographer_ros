@@ -73,8 +73,8 @@ void Run() {
                                    FLAGS_load_frozen_state);
   }
 
-  Node node(node_options, std::move(map_builder), &tf_buffer,
-            FLAGS_collect_metrics);
+  Node node(node_options, trajectory_options, std::move(map_builder),
+            &tf_buffer, FLAGS_collect_metrics);
 
   if (!FLAGS_load_state_filename.empty() && FLAGS_upload_load_state_file) {
     node.LoadState(FLAGS_load_state_filename, FLAGS_load_frozen_state);
