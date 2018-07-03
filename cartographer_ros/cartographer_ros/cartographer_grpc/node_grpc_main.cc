@@ -63,7 +63,7 @@ void Run() {
 
   auto map_builder = absl::make_unique<::cartographer::cloud::MapBuilderStub>(
       FLAGS_server_address, FLAGS_client_id);
-  Node node(node_options, std::move(map_builder), &tf_buffer,
+  Node node(node_options, trajectory_options, std::move(map_builder), &tf_buffer,
             FLAGS_collect_metrics);
 
   if (!FLAGS_load_state_filename.empty()) {

@@ -27,6 +27,7 @@
 #include "cartographer/common/port.h"
 #include "cartographer/common/time.h"
 #include "cartographer/mapping/pose_graph_interface.h"
+#include "cartographer/transform/rigid_transform.h"
 #include "cartographer/mapping/proto/submap_visualization.pb.h"
 #include "cartographer/metrics/register.h"
 #include "cartographer/sensor/point_cloud.h"
@@ -89,9 +90,10 @@ using TrajectoryState =
 
 Node::Node(
     const NodeOptions& node_options,
+    const TrajectoryOptions& trajectory_options,
     std::unique_ptr<cartographer::mapping::MapBuilderInterface> map_builder,
     tf2_ros::Buffer* const tf_buffer, const bool collect_metrics)
-    : node_options_(node_options),
+    : node_options_(node_options), trajectory_options_(trajectory_options),
       map_builder_bridge_(node_options_, std::move(map_builder), tf_buffer) {
   absl::MutexLock lock(&mutex_);
   if (collect_metrics) {
@@ -113,6 +115,8 @@ Node::Node(
           kConstraintListTopic, kLatestOnlyPublisherQueueSize);
   service_servers_.push_back(node_handle_.advertiseService(
       kSubmapQueryServiceName, &Node::HandleSubmapQuery, this));
+  service_servers_.push_back(node_handle_.advertiseService(
+      kInitPoseServiceName, &Node::HandleInitPose, this));
   service_servers_.push_back(node_handle_.advertiseService(
       kStartTrajectoryServiceName, &Node::HandleStartTrajectory, this));
   service_servers_.push_back(node_handle_.advertiseService(
@@ -529,6 +533,48 @@ cartographer_ros_msgs::StatusResponse Node::FinishTrajectoryUnderLock(
   status_response.code = cartographer_ros_msgs::StatusCode::OK;
   status_response.message = message;
   return status_response;
+}
+
+bool Node::HandleInitPose(
+    ::cartographer_ros_msgs::InitPose::Request& request,
+    ::cartographer_ros_msgs::InitPose::Response& response) {
+
+  absl::MutexLock lock(&mutex_);
+  for (const auto& entry : map_builder_bridge_.GetTrajectoryStates()) {
+    if (entry.second != TrajectoryState::ACTIVE) {
+      continue;
+    }
+    const int trajectory_id = entry.first;
+    auto finish_response = FinishTrajectoryUnderLock(trajectory_id).code;
+
+    if (finish_response != cartographer_ros_msgs::StatusCode::OK) {
+      response.status.code = finish_response;
+      return true;
+    }
+  }
+
+  TrajectoryOptions options(trajectory_options_);
+  auto* initial_pose = options.trajectory_builder_options.mutable_initial_trajectory_pose();
+  auto* relative_pose = initial_pose->mutable_relative_pose();
+  auto* translation = relative_pose->mutable_translation();
+  auto* rotation = relative_pose->mutable_rotation();
+
+  translation->set_x(request.x);
+  translation->set_y(request.y);
+  translation->set_z(request.z);
+
+  Eigen::Quaterniond quaternion = cartographer::transform::RollPitchYaw(request.roll,
+                                                                        request.pitch,
+                                                                        request.yaw);
+  rotation->set_x(quaternion.x());
+  rotation->set_y(quaternion.y());
+  rotation->set_z(quaternion.z());
+  rotation->set_w(quaternion.w());
+
+  response.trajectory_id = AddTrajectory(options, DefaultSensorTopics());
+  response.status.code = cartographer_ros_msgs::StatusCode::OK;
+  response.status.message = "Success.";
+  return true;
 }
 
 bool Node::HandleStartTrajectory(
