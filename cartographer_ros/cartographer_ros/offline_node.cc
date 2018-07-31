@@ -377,6 +377,7 @@ void RunOfflineNode(const MapBuilderFactory& map_builder_factory) {
     LOG(INFO) << "Writing state to '" << state_output_filename << "'...";
     node.SerializeState(state_output_filename,
                         true /* include_unfinished_submaps */);
+    LOG(INFO) << "Finished writing to '" << state_output_filename << "'";
   }
   if (FLAGS_keep_running) {
     ::ros::waitForShutdown();
