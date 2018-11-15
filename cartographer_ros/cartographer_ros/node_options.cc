@@ -24,6 +24,25 @@
 
 namespace cartographer_ros {
 
+std::array<double, 36> ReadCovariance(
+    ::cartographer::common::LuaParameterDictionary* const
+        lua_parameter_dictionary) {
+  std::array<double, 36> covariance = {};
+  covariance[0] =
+      lua_parameter_dictionary->GetDouble("x");
+  covariance[7] =
+      lua_parameter_dictionary->GetDouble("y");
+  covariance[14] =
+      lua_parameter_dictionary->GetDouble("z");
+  covariance[21] =
+      lua_parameter_dictionary->GetDouble("roll");
+  covariance[28] =
+      lua_parameter_dictionary->GetDouble("pitch");
+  covariance[35] =
+      lua_parameter_dictionary->GetDouble("yaw");
+  return covariance;
+}
+
 NodeOptions CreateNodeOptions(
     ::cartographer::common::LuaParameterDictionary* const
         lua_parameter_dictionary) {
@@ -40,6 +59,16 @@ NodeOptions CreateNodeOptions(
       lua_parameter_dictionary->GetDouble("pose_publish_period_sec");
   options.trajectory_publish_period_sec =
       lua_parameter_dictionary->GetDouble("trajectory_publish_period_sec");
+  if (lua_parameter_dictionary->HasKey("publish_to_tf")) {
+    options.publish_to_tf =
+        lua_parameter_dictionary->GetBool("publish_to_tf");
+  }
+  if (lua_parameter_dictionary->HasKey("pose_msg_covariance")) {
+    options.publish_tracked_pose_msg = true;
+    options.pose_msg_covariance =
+        ReadCovariance(lua_parameter_dictionary->GetDictionary(
+            "pose_msg_covariance").get());
+  }
   if (lua_parameter_dictionary->HasKey("use_pose_extrapolator")) {
     options.use_pose_extrapolator =
         lua_parameter_dictionary->GetBool("use_pose_extrapolator");
