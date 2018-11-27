@@ -17,7 +17,7 @@
 
 <package format="2">
   <name>cartographer_ros_msgs</name>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
   <description>
     ROS messages for the cartographer_ros package.
   </description>
@@ -38,6 +38,6 @@
   <depend>std_msgs</depend>
 
   <build_depend>message_generation</build_depend>
-  
+
   <exec_depend>message_runtime</exec_depend>
 </package>
