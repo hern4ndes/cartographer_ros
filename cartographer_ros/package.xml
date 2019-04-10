@@ -40,6 +40,7 @@
   <build_depend>google-mock</build_depend>
   <build_depend>g++-static</build_depend>
   <build_depend>python-sphinx</build_depend>
+  <build_depend>protobuf-3.4.1</build_depend>
 
   <depend version_gte="1.0.0">cartographer</depend>
   <depend version_gte="1.0.0">cartographer_ros_msgs</depend>
@@ -51,7 +52,6 @@
   <depend>message_runtime</depend>
   <depend>nav_msgs</depend>
   <depend>pcl_conversions</depend>
-  <depend>protobuf-cartographer</depend>
   <depend>robot_state_publisher</depend>
   <depend>rosbag</depend>
   <depend>roscpp</depend>
@@ -69,5 +69,6 @@
 
   <export>
       <rviz plugin="${prefix}/rviz_plugin_description.xml" />
+      <build_deb custom_name="@(Package)-enway" />
   </export>
 </package>

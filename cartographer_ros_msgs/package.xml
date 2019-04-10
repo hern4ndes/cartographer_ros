@@ -40,4 +40,8 @@
   <build_depend>message_generation</build_depend>
 
   <exec_depend>message_runtime</exec_depend>
+
+  <export>
+    <build_deb custom_name="@(Package)-enway" />
+  </export>
 </package>

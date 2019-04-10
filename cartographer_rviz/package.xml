@@ -54,5 +54,6 @@
 
   <export>
       <rviz plugin="${prefix}/rviz_plugin_description.xml" />
+      <build_deb custom_name="@(Package)-enway" />
   </export>
 </package>
